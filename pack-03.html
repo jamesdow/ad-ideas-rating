@@ -1,8 +1,5 @@
 <title>Alien Ad Space ratings</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="robots" content="noindex,nofollow">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rethink+Sans:wght@400;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
 :root {
@@ -91,7 +88,7 @@ label { font-weight:600; }
       '<li><b>Ten ideas, one at a time.</b> About 25 minutes. Please don\'t look anything up.</li>' +
       '<li><b>Score five things</b> from 1 (low) to 5 (high), then say whether you would riff on it.</li>' +
       '<li><b>Your scores save in this browser</b> as you go, so you can close it and come back on the same computer.</li>' +
-      '<li><b>At the end</b> you will get a short code and a CSV file. Send either to the person who sent you this file.</li></ol>' +
+      '<li><b>At the end</b> press <b>Send my scores</b>. There is also a short code and a CSV file as a back-up.</li></ol>' +
       '<div class="row"><label for="nm">Your name</label><input id="nm" type="text" style="max-width:300px" autocomplete="off"></div>' +
       '<div class="row"><button id="go">' + (resume ? "Carry on" : "Start") + '</button></div></div>';
     $("#nm").value = st.name || "";
@@ -136,11 +133,20 @@ label { font-weight:600; }
   }
   function finish() {
     var p = payload(), code = btoa(unescape(encodeURIComponent(JSON.stringify(p))));
-    app.innerHTML = '<div class="panel"><h3>All ten done. Thank you.</h3><p class="note">Please send your scores back to the person who sent you this file. Either of these works.</p>' +
-      '<div class="row"><button id="dl">Download CSV</button><button id="cp" class="ghost">Copy code</button><span id="m2" class="note"></span></div>' +
+    app.innerHTML = '<div class="panel"><h3>All ten done. Thank you.</h3><p class="note">Press the button to send your scores. Nothing else is needed.</p>' +
+      '<div class="row"><button id="snd">Send my scores</button><span id="m3" class="note"></span></div>' +
+      '<p class="note">Back-up, only if the button fails: download the CSV or copy the code and send it to the person who sent you this file.</p>' +
+      '<div class="row"><button id="dl" class="ghost">Download CSV</button><button id="cp" class="ghost">Copy code</button><span id="m2" class="note"></span></div>' +
       '<label for="cd" style="display:block;margin-top:16px">Your code (paste it into an email or message)</label><textarea id="cd" class="code" readonly></textarea>' +
       '<div class="row"><button id="rv" class="ghost">Go back and change a score</button></div></div>';
     $("#cd").value = code;
+    var FORM = "https://docs.google.com/forms/d/e/1FAIpQLSdmbZSBNd5jX7mgj_9_gqyzCgbGvbd-bsZmhktpkxr2GAxOLg/formResponse";
+    function send() {
+      $("#m3").textContent = "Sending...";
+      var b = new URLSearchParams(); b.set("entry.34266590", code);
+      fetch(FORM, { method: "POST", mode: "no-cors", body: b }).then(function () { $("#m3").textContent = "Sent. Thank you. You can close this page."; }, function () { $("#m3").textContent = "Could not send. Please use the back-up below."; });
+    }
+    $("#snd").addEventListener("click", send);
     $("#dl").addEventListener("click", function () {
       var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv(p)], { type: "text/csv" })); a.download = "alien-ad-space-scores-" + DATA.pack + ".csv";
       document.body.appendChild(a); a.click(); a.remove(); $("#m2").textContent = "Saved to your downloads.";
